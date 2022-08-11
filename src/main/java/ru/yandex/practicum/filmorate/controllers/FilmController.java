@@ -18,27 +18,12 @@ public class FilmController {
     private static int ids = 0;
     private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
-    public boolean isValid(Film film) {
-        boolean isValid = true;
-        if (film.getName().isEmpty() || film.getName().isBlank() ||
-            film.getDescription().length() > 200 ||
-            film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE) ||
-            film.getDuration() <= 0) {
-            isValid = false;
-        }
-        return isValid;
-    }
-
     @PostMapping("/films")
     public Film create(@RequestBody Film film) {
         if (isValid(film)) {
-            if (film.getId() == 0) {
-                film.setId(++ids);
-            }
+            film.setId(++ids);
             films.put(film.getId(), film);
             log.info("Фильм " + film.getName() + " успешно добавлен.");
-        } else {
-            throw new ValidationException("Неверно введены данные о фильме.");
         }
         return film;
     }
@@ -55,9 +40,19 @@ public class FilmController {
         if (films.containsKey(film.getId()) && isValid(film)) {
             films.put(film.getId(), film);
             log.info("Фильм " + film.getName() + " успешно обновлен.");
+            return film;
         } else {
+            throw new ValidationException("Ошибка при обновлении фильма.");
+        }
+    }
+
+    private boolean isValid(Film film) {
+        if (film.getName() == null || film.getName().isBlank() ||
+                film.getDescription() == null || film.getDescription().length() > 200 ||
+                film.getReleaseDate() == null || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE) ||
+                film.getDuration() <= 0) {
             throw new ValidationException("Неверно введены данные о фильме.");
         }
-        return film;
+        return true;
     }
 }

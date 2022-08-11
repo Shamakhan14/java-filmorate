@@ -17,29 +17,12 @@ public class UserController {
     private Map<Integer, User> users = new HashMap<>();
     private static int ids = 0;
 
-    public boolean isValid(User user) {
-        boolean isValid = true;
-        if (user.getName().isEmpty() || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        if (user.getEmail().isEmpty() || !user.getEmail().contains("@") ||
-            user.getLogin().isEmpty() || user.getLogin().contains(" ") ||
-            user.getBirthday().isAfter(LocalDate.now())) {
-            isValid = false;
-        }
-        return isValid;
-    }
-
     @PostMapping("/users")
     public User create(@RequestBody User user) {
         if (isValid(user)) {
-            if (user.getId() == 0) {
-                user.setId(++ids);
-            }
+            user.setId(++ids);
             users.put(user.getId(), user);
             log.info("Пользователь " + user.getName() + " успешно добавлен.");
-        } else {
-            throw new ValidationException("Неверно введены данные пользователя.");
         }
         return user;
     }
@@ -55,9 +38,21 @@ public class UserController {
         if (users.containsKey(user.getId()) && isValid(user)) {
             users.put(user.getId(), user);
             log.info("Пользователь " + user.getName() + " успешно обновлен.");
+            return user;
         } else {
-            throw new ValidationException("Неверно введены данные о фильме.");
+            throw new ValidationException("Ошибка при обновлении данных пользователя.");
         }
-        return user;
+    }
+
+    private boolean isValid(User user) {
+        if (user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@") ||
+                user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ") ||
+                user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
+            throw new ValidationException("Неверно введены данные пользователя.");
+        }
+        return true;
     }
 }

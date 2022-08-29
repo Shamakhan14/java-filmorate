@@ -1,27 +1,31 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.util.ValidationException;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Slf4j
 public class UserController {
-    private Map<Integer, User> users = new HashMap<>();
-    private static int ids = 0;
+
+    private UserStorage userStorage;
+
+    @Autowired
+    public UserController(InMemoryUserStorage inMemoryUserStorage) {
+        userStorage = inMemoryUserStorage;
+    }
 
     @PostMapping("/users")
     public User create(@RequestBody User user) {
         if (isValid(user)) {
-            user.setId(++ids);
-            users.put(user.getId(), user);
+            userStorage.addUser(user);
             log.info("Пользователь " + user.getName() + " успешно добавлен.");
         }
         return user;
@@ -30,13 +34,20 @@ public class UserController {
     @GetMapping("/users")
     public List<User> getAllUsers() {
         log.info("Запрошен список пользователей.");
-        return new ArrayList<>(users.values());
+        return userStorage.getUsers();
     }
 
     @PutMapping("/users")
     public User updateUser(@RequestBody User user) {
-        if (users.containsKey(user.getId()) && isValid(user)) {
-            users.put(user.getId(), user);
+        boolean contains = false;
+        for (User user1: userStorage.getUsers()) {
+            if (user1.getId() == user.getId()) {
+                contains = true;
+                break;
+            }
+        }
+        if (contains && isValid(user)) {
+            userStorage.updateUser(user);
             log.info("Пользователь " + user.getName() + " успешно обновлен.");
             return user;
         } else {

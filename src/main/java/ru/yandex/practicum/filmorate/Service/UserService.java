@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.util.ValidationException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -20,6 +19,22 @@ public class UserService {
     @Autowired
     public UserService(UserStorage userStorage) {
         this.userStorage = userStorage;
+    }
+
+    public void addUser(User user) {
+        userStorage.addUser(user);
+    }
+
+    public List<User> getUsers() {
+        return userStorage.getUsers();
+    }
+
+    public void updateUser(User user) {
+        userStorage.updateUser(user);
+    }
+
+    public User findUser(Integer userID) {
+        return userStorage.findUser(userID);
     }
 
     public void addFriend(Integer userID, Integer friendID) {

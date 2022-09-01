@@ -36,7 +36,6 @@ public class InMemoryUserStorage implements UserStorage{
 
     @Override
     public User findUser(Integer userID) {
-        if (users.containsKey(userID)) return users.get(userID);
-        return null;
+        return users.get(userID);
     }
 }

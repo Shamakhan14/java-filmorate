@@ -5,29 +5,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.Service.UserService;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.util.ObjectNotFoundException;
 
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @Slf4j
 public class UserController {
 
-    private UserStorage userStorage;
     private UserService userService;
 
     @Autowired
-    public UserController(UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @PostMapping("/users")
     public User create(@RequestBody User user) {
         if (userService.isValid(user)) {
-            userStorage.addUser(user);
+            userService.addUser(user);
             log.info("Пользователь " + user.getName() + " успешно добавлен.");
         }
         return user;
@@ -37,20 +33,20 @@ public class UserController {
     @ResponseBody
     public List<User> getAllUsers() {
         log.info("Запрошен список пользователей.");
-        return userStorage.getUsers();
+        return userService.getUsers();
     }
 
     @PutMapping("/users")
     public User updateUser(@RequestBody User user) {
         boolean contains = false;
-        for (User user1: userStorage.getUsers()) {
+        for (User user1: userService.getUsers()) {
             if (user1.getId() == user.getId()) {
                 contains = true;
                 break;
             }
         }
         if (contains && userService.isValid(user)) {
-            userStorage.updateUser(user);
+            userService.updateUser(user);
             log.info("Пользователь " + user.getName() + " успешно обновлен.");
             return user;
         } else {
@@ -61,42 +57,42 @@ public class UserController {
     @GetMapping("/users/{id}")
     @ResponseBody
     public User getUser(@PathVariable int id) {
-        if (userStorage.findUser(id) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
-        return userStorage.findUser(id);
+        if (userService.findUser(id) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
+        return userService.findUser(id);
     }
 
     @PutMapping("/users/{id}/friends/{friendId}")
     public User addFriend(@PathVariable int id, @PathVariable int friendId) {
-        if (userStorage.findUser(id) != null && userStorage.findUser(friendId) != null) {
+        if (userService.findUser(id) != null && userService.findUser(friendId) != null) {
             userService.addFriend(id, friendId);
-            return userStorage.findUser(id);
+            return userService.findUser(id);
         }
         throw new ObjectNotFoundException("Неверный ID пользователя.");
     }
 
     @DeleteMapping("/users/{id}/friends/{friendId}")
     public User removeFriend(@PathVariable int id, @PathVariable int friendId) {
-        if (userStorage.findUser(id) == null || userStorage.findUser(friendId) == null) {
+        if (userService.findUser(id) == null || userService.findUser(friendId) == null) {
             throw new ObjectNotFoundException("Неверный ID пользователя.");
         }
-        if (!userStorage.findUser(id).getFriends().contains(friendId)) {
+        if (!userService.findUser(id).getFriends().contains(friendId)) {
             throw new ObjectNotFoundException("Данные пользовтаели не являются друзьями.");
         }
         userService.removeFriend(id, friendId);
-        return userStorage.findUser(id);
+        return userService.findUser(id);
     }
 
     @GetMapping("/users/{id}/friends")
     @ResponseBody
     public List<User> getFriends(@PathVariable int id) {
-        if (userStorage.findUser(id) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
+        if (userService.findUser(id) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
         return userService.getFriends(id);
     }
 
     @GetMapping("/users/{id}/friends/common/{otherId}")
     @ResponseBody
     public List<User> getMutualFriends(@PathVariable int id, @PathVariable int otherId) {
-        if (userStorage.findUser(id) == null || userStorage.findUser(otherId) == null) {
+        if (userService.findUser(id) == null || userService.findUser(otherId) == null) {
             throw new ObjectNotFoundException("Неверный ID пользователя.");
         }
         return userService.getMutualFriends(id, otherId);

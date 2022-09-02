@@ -1,24 +1,21 @@
 package ru.yandex.practicum.filmorate.Service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.util.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.util.ValidationException;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class FilmService {
 
-    private FilmStorage filmStorage;
-    private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
-
-    @Autowired
-    public FilmService(FilmStorage filmStorage) {
-        this.filmStorage = filmStorage;
-    }
+    private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
 
     public void addFilm(Film film) {
         filmStorage.addFilm(film);
@@ -29,34 +26,41 @@ public class FilmService {
     }
 
     public void updateFilm(Film film) {
+        boolean contains = false;
+        for (Film film1: filmStorage.getFilms()) {
+            if (film1.getId() == film.getId()) {
+                contains = true;
+                break;
+            }
+        }
+        if (!contains) throw new ObjectNotFoundException("Обновляемый фильм не найден.");
         filmStorage.updateFilm(film);
     }
 
     public Film findFilm(Integer filmID) {
+        if (filmStorage.findFilm(filmID) == null) throw new ObjectNotFoundException("Неверный ID фильма.");
         return filmStorage.findFilm(filmID);
     }
 
     public void addLike(Integer filmID, Integer userID) {
+        if (findFilm(filmID) == null) throw new ObjectNotFoundException("Неверный ID фильма.");
+        if (userStorage.findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
         filmStorage.findFilm(filmID).addLike(userID);
     }
 
     public void removeLike(Integer filmID, Integer userID) {
+        if (findFilm(filmID) == null) throw new ObjectNotFoundException("Неверный ID фильма.");
+        if (userStorage.findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
+        if (!findFilm(filmID).getLikedIDs().contains(userID))
+            throw new ObjectNotFoundException("Пользователю уже не нравится данный фильм.");
         filmStorage.findFilm(filmID).removeLike(userID);
     }
 
-    public List<Film> getTopFilms(int top) {
+    public List<Film> getTopFilms(int count) {
+        if (count <= 0) throw new ValidationException("Неверно указано количество фильмов.");
+        if (count > getFilms().size()) count = getFilms().size();
         List<Film> sortedFilms = filmStorage.getFilms();
         sortedFilms.sort((Film o1, Film o2) -> o1.getLikedIDs().size() - o2.getLikedIDs().size());
-        return new ArrayList<>(sortedFilms.subList(sortedFilms.size()-top, sortedFilms.size()));
-    }
-
-    public boolean isValid(Film film) {
-        if (film.getName() == null || film.getName().isBlank() ||
-                film.getDescription() == null || film.getDescription().length() > 200 ||
-                film.getReleaseDate() == null || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE) ||
-                film.getDuration() <= 0) {
-            throw new ValidationException("Неверно введены данные о фильме.");
-        }
-        return true;
+        return new ArrayList<>(sortedFilms.subList(sortedFilms.size()-count, sortedFilms.size()));
     }
 }

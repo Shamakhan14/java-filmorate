@@ -1,25 +1,19 @@
 package ru.yandex.practicum.filmorate.Service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.util.ValidationException;
+import ru.yandex.practicum.filmorate.util.ObjectNotFoundException;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    private UserStorage userStorage;
-
-    @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
+    private final UserStorage userStorage;
 
     public void addUser(User user) {
         userStorage.addUser(user);
@@ -30,14 +24,25 @@ public class UserService {
     }
 
     public void updateUser(User user) {
+        boolean contains = false;
+        for (User user1: getUsers()) {
+            if (user1.getId() == user.getId()) {
+                contains = true;
+                break;
+            }
+        }
+        if (!contains) throw new ObjectNotFoundException("Искомый пользователь не найден.");
         userStorage.updateUser(user);
     }
 
     public User findUser(Integer userID) {
+        if (userStorage.findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
         return userStorage.findUser(userID);
     }
 
     public void addFriend(Integer userID, Integer friendID) {
+        if (findUser(userID) == null || findUser(friendID) == null)
+            throw new ObjectNotFoundException("Неверный ID пользователя.");
         User user = userStorage.findUser(userID);
         User friend = userStorage.findUser(friendID);
         user.addFriend(friendID);
@@ -45,6 +50,12 @@ public class UserService {
     }
 
     public void removeFriend(Integer userID, Integer friendID) {
+        if (findUser(userID) == null || userStorage.findUser(friendID) == null) {
+            throw new ObjectNotFoundException("Неверный ID пользователя.");
+        }
+        if (!findUser(userID).getFriends().contains(friendID)) {
+            throw new ObjectNotFoundException("Данные пользовтаели не являются друзьями.");
+        }
         User user = userStorage.findUser(userID);
         User friend = userStorage.findUser(friendID);
         user.removeFriend(friendID);
@@ -52,37 +63,19 @@ public class UserService {
     }
 
     public List<User> getFriends(Integer userID) {
-        List<User> friends = new ArrayList<>();
-        for (Integer integer: userStorage.findUser(userID).getFriends()) {
-            friends.add(userStorage.findUser(integer));
-        }
-        return friends;
+        if (findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
+        return findUser(userID).getFriends().stream()
+                .map(this::findUser)
+                .collect(Collectors.toList());
     }
 
     public List<User> getMutualFriends(Integer userID, Integer friendID) {
-        User user = userStorage.findUser(userID);
-        User friend = userStorage.findUser(friendID);
-        Set<Integer> userFriends = user.getFriends();
-        Set<Integer> friendFriends = friend.getFriends();
-        List<User> result = new ArrayList<>();
-        if (userFriends == null || friendFriends == null) return result;
-        for (Integer ID: userFriends) {
-            if (friendFriends.contains(ID)) {
-                result.add(userStorage.findUser(ID));
-            }
+        if (findUser(userID) == null || findUser(friendID) == null) {
+            throw new ObjectNotFoundException("Неверный ID пользователя.");
         }
-        return result;
-    }
-
-    public boolean isValid(User user) {
-        if (user.getName().isBlank() || user.getName() == null) {
-            user.setName(user.getLogin());
-        }
-        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@") ||
-                user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ") ||
-                user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidationException("Неверно введены данные пользователя.");
-        }
-        return true;
+        return findUser(userID).getFriends().stream()
+                .filter(findUser(friendID).getFriends()::contains)
+                .map(this::findUser)
+                .collect(Collectors.toList());
     }
 }

@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.Service.FilmService;
 import ru.yandex.practicum.filmorate.Service.UserService;
@@ -9,24 +9,21 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.util.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.util.ValidationException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 public class FilmController {
 
-    private FilmService filmService;
-    private UserService userService;
-
-    @Autowired
-    public FilmController(FilmService filmService, UserService userService) {
-        this.filmService = filmService;
-        this.userService = userService;
-    }
+    private final FilmService filmService;
+    private final UserService userService;
+    private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     @PostMapping("/films")
     public Film create(@RequestBody Film film) {
-        if (filmService.isValid(film)) {
+        if (isValid(film)) {
             filmService.addFilm(film);
             log.info("Фильм " + film.getName() + " успешно добавлен.");
         }
@@ -34,7 +31,6 @@ public class FilmController {
     }
 
     @GetMapping("/films")
-    @ResponseBody
     public List<Film> getAllFilms() {
         log.info("Запрошен список фильмов.");
         return filmService.getFilms();
@@ -42,14 +38,7 @@ public class FilmController {
 
     @PutMapping("/films")
     public Film updateFilm(@RequestBody Film film) {
-        boolean contains = false;
-        for (Film film1: filmService.getFilms()) {
-            if (film1.getId() == film.getId()) {
-                contains = true;
-                break;
-            }
-        }
-        if (contains && filmService.isValid(film)) {
+        if (isValid(film)) {
             filmService.updateFilm(film);
             log.info("Фильм " + film.getName() + " успешно обновлен.");
             return film;
@@ -59,34 +48,40 @@ public class FilmController {
     }
 
     @GetMapping("/films/{id}")
-    @ResponseBody
     public Film getFilm(@PathVariable int id) {
-        if (filmService.findFilm(id) == null) throw new ObjectNotFoundException("Неверный ID фильма.");
+        log.info("Запрошен фильм " + filmService.findFilm(id).getName() + ".");
         return filmService.findFilm(id);
     }
 
     @PutMapping("/films/{id}/like/{userId}")
     public Film addLike(@PathVariable int id, @PathVariable int userId) {
-        if (filmService.findFilm(id) == null) throw new ObjectNotFoundException("Неверный ID фильма.");
-        if (userService.findUser(userId) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
         filmService.addLike(id, userId);
+        log.info("Пользователь " + userService.findUser(userId).getName() + " поставил фильму " +
+                filmService.findFilm(id).getName() + " лайк.");
         return filmService.findFilm(id);
     }
 
     @DeleteMapping("/films/{id}/like/{userId}")
     public Film removeLike(@PathVariable int id, @PathVariable int userId) {
-        if (filmService.findFilm(id) == null) throw new ObjectNotFoundException("Неверный ID фильма.");
-        if (userService.findUser(userId) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
-        if (!filmService.findFilm(id).getLikedIDs().contains(userId))
-            throw new ObjectNotFoundException("Пользователю уже не нравится данный фильм.");
         filmService.removeLike(id, userId);
+        log.info("Пользователю " + userService.findUser(userId).getName() + " больше не нравится фильм " +
+                filmService.findFilm(id).getName() + ".");
         return filmService.findFilm(id);
     }
 
     @GetMapping("/films/popular")
     public List<Film> getTopFilms(@RequestParam(defaultValue = "10", required = false) Integer count) {
-        if (count <= 0) throw new ValidationException("Неверно указано количество фильмов.");
-        if (count > filmService.getFilms().size()) count = filmService.getFilms().size();
+        log.info("Запрошен топ " + count + " фильмов.");
         return filmService.getTopFilms(count);
+    }
+
+    private boolean isValid(Film film) {
+        if (film.getName() == null || film.getName().isBlank() ||
+                film.getDescription() == null || film.getDescription().length() > 200 ||
+                film.getReleaseDate() == null || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE) ||
+                film.getDuration() <= 0) {
+            throw new ValidationException("Неверно введены данные о фильме.");
+        }
+        return true;
     }
 }

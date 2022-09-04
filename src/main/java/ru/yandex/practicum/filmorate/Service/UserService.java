@@ -24,14 +24,7 @@ public class UserService {
     }
 
     public void updateUser(User user) {
-        boolean contains = false;
-        for (User user1: getUsers()) {
-            if (user1.getId() == user.getId()) {
-                contains = true;
-                break;
-            }
-        }
-        if (!contains) throw new ObjectNotFoundException("Искомый пользователь не найден.");
+        User newUser = findUser(user.getId());
         userStorage.updateUser(user);
     }
 
@@ -41,23 +34,18 @@ public class UserService {
     }
 
     public void addFriend(Integer userID, Integer friendID) {
-        if (findUser(userID) == null || findUser(friendID) == null)
-            throw new ObjectNotFoundException("Неверный ID пользователя.");
-        User user = userStorage.findUser(userID);
-        User friend = userStorage.findUser(friendID);
+        User user = findUser(userID);
+        User friend = findUser(friendID);
         user.addFriend(friendID);
         friend.addFriend(userID);
     }
 
     public void removeFriend(Integer userID, Integer friendID) {
-        if (findUser(userID) == null || userStorage.findUser(friendID) == null) {
-            throw new ObjectNotFoundException("Неверный ID пользователя.");
-        }
         if (!findUser(userID).getFriends().contains(friendID)) {
             throw new ObjectNotFoundException("Данные пользовтаели не являются друзьями.");
         }
-        User user = userStorage.findUser(userID);
-        User friend = userStorage.findUser(friendID);
+        User user = findUser(userID);
+        User friend = findUser(friendID);
         user.removeFriend(friendID);
         friend.removeFriend(userID);
     }
@@ -70,9 +58,6 @@ public class UserService {
     }
 
     public List<User> getMutualFriends(Integer userID, Integer friendID) {
-        if (findUser(userID) == null || findUser(friendID) == null) {
-            throw new ObjectNotFoundException("Неверный ID пользователя.");
-        }
         return findUser(userID).getFriends().stream()
                 .filter(findUser(friendID).getFriends()::contains)
                 .map(this::findUser)

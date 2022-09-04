@@ -26,34 +26,26 @@ public class FilmService {
     }
 
     public void updateFilm(Film film) {
-        boolean contains = false;
-        for (Film film1: filmStorage.getFilms()) {
-            if (film1.getId() == film.getId()) {
-                contains = true;
-                break;
-            }
-        }
-        if (!contains) throw new ObjectNotFoundException("Обновляемый фильм не найден.");
+        Film newFilm = findFilm(film.getId());
         filmStorage.updateFilm(film);
     }
 
     public Film findFilm(Integer filmID) {
-        if (filmStorage.findFilm(filmID) == null) throw new ObjectNotFoundException("Неверный ID фильма.");
-        return filmStorage.findFilm(filmID);
+        Film film = filmStorage.findFilm(filmID);
+        if (film == null) throw new ObjectNotFoundException("Неверный ID фильма.");
+        return film;
     }
 
     public void addLike(Integer filmID, Integer userID) {
-        if (findFilm(filmID) == null) throw new ObjectNotFoundException("Неверный ID фильма.");
         if (userStorage.findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
         filmStorage.findFilm(filmID).addLike(userID);
     }
 
     public void removeLike(Integer filmID, Integer userID) {
-        if (findFilm(filmID) == null) throw new ObjectNotFoundException("Неверный ID фильма.");
         if (userStorage.findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
         if (!findFilm(filmID).getLikedIDs().contains(userID))
             throw new ObjectNotFoundException("Пользователю уже не нравится данный фильм.");
-        filmStorage.findFilm(filmID).removeLike(userID);
+        findFilm(filmID).removeLike(userID);
     }
 
     public List<Film> getTopFilms(int count) {

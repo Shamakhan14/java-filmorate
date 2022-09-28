@@ -2,8 +2,10 @@ package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.Service.UserService;
 import ru.yandex.practicum.filmorate.controllers.UserController;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.util.ValidationException;
 
 import java.time.LocalDate;
@@ -12,11 +14,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UserValidationTest {
 
+    InMemoryUserStorage userStorage;
+    UserService userService;
     UserController userController;
 
     @BeforeEach
     public void beforeEach() {
-        userController = new UserController();
+        userStorage = new InMemoryUserStorage();
+        userService = new UserService(userStorage);
+        userController = new UserController(userService);
     }
 
     @Test
@@ -30,7 +36,6 @@ public class UserValidationTest {
     public void shouldValidateWithEmptyName() {
         User user = new User("heman@man.ru", "login", "", LocalDate.now().minusYears(20));
         userController.create(user);
-        assertEquals(user.getName(), user.getLogin());
         assertEquals(1, userController.getAllUsers().size());
     }
 

@@ -2,8 +2,13 @@ package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.Service.FilmService;
+import ru.yandex.practicum.filmorate.Service.UserService;
 import ru.yandex.practicum.filmorate.controllers.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.util.ValidationException;
 
 import java.time.LocalDate;
@@ -12,18 +17,26 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class FilmValidationTest {
 
+    InMemoryFilmStorage filmStorage;
+    FilmService filmService;
     FilmController filmController;
+    UserStorage userStorage;
+    UserService userService;
 
     @BeforeEach
     public void beforeEach() {
-        filmController = new FilmController();
+        filmStorage = new InMemoryFilmStorage();
+        userStorage = new InMemoryUserStorage();
+        userService = new UserService(userStorage);
+        filmService = new FilmService(filmStorage, userStorage);
+        filmController = new FilmController(filmService, userService);
     }
 
     @Test
     public void shouldValidateUsualFilm() {
         Film film = new Film("name", "description", LocalDate.now(), 100);
         filmController.create(film);
-        assertEquals(1, filmController.getAllFilms().size());
+        assertEquals(1, filmService.getFilms().size());
     }
 
     @Test
@@ -52,7 +65,7 @@ public class FilmValidationTest {
     public void shouldValidateFilmWithExactlyWrongDate() {
         Film film = new Film("name", "description", LocalDate.of(1895, 12, 28), 100);
         filmController.create(film);
-        assertEquals(1, filmController.getAllFilms().size());
+        assertEquals(1, filmService.getFilms().size());
     }
 
     @Test

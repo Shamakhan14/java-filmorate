@@ -1,2 +1,2 @@
 # java-filmorate
-Template repository for Filmorate project.
+![Схема БД.](https://github.com/Shamakhan14/java-filmorate/blob/add-database/QuickDBD-Filmorate.png)

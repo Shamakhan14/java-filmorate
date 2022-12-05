@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-public class User {
+public class  User {
     private int id;
     private String email;
     private String login;

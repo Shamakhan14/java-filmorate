@@ -24,7 +24,6 @@ public class UserDBStorageTests {
         //creating
         User user = new User("email@email.com", "login", "name", LocalDate.now());
         User user2 = userStorage.addUser(user);
-        assertEquals(1, user2.getId());
         assertEquals(user.getName(), user2.getName());
         assertEquals(user.getEmail(), user2.getEmail());
         assertEquals(user.getLogin(), user2.getLogin());

@@ -23,11 +23,14 @@ public class FilmController {
 
     @PostMapping("/films")
     public Film create(@RequestBody Film film) {
+        Film newFilm;
         if (isValid(film)) {
-            filmService.addFilm(film);
-            log.info("Фильм " + film.getName() + " успешно добавлен.");
+            newFilm = filmService.addFilm(film);
+            log.info("Фильм " + newFilm.getName() + " успешно добавлен.");
+        } else {
+            newFilm = null;
         }
-        return film;
+        return newFilm;
     }
 
     @GetMapping("/films")
@@ -41,7 +44,7 @@ public class FilmController {
         if (isValid(film)) {
             filmService.updateFilm(film);
             log.info("Фильм " + film.getName() + " успешно обновлен.");
-            return film;
+            return filmService.findFilm(film.getId());
         } else {
             throw new ObjectNotFoundException("Ошибка при обновлении фильма.");
         }
@@ -54,11 +57,10 @@ public class FilmController {
     }
 
     @PutMapping("/films/{id}/like/{userId}")
-    public Film addLike(@PathVariable int id, @PathVariable int userId) {
+    public void addLike(@PathVariable int id, @PathVariable int userId) {
         filmService.addLike(id, userId);
         log.info("Пользователь " + userService.findUser(userId).getName() + " поставил фильму " +
                 filmService.findFilm(id).getName() + " лайк.");
-        return filmService.findFilm(id);
     }
 
     @DeleteMapping("/films/{id}/like/{userId}")

@@ -19,11 +19,14 @@ public class UserController {
 
     @PostMapping("/users")
     public User create(@RequestBody User user) {
+        User newUser;
         if (isValid(user)) {
-            userService.addUser(user);
+            newUser = userService.addUser(user);
             log.info("Пользователь " + user.getName() + " успешно добавлен.");
+        } else {
+            newUser = null;
         }
-        return user;
+        return newUser;
     }
 
     @GetMapping("/users")

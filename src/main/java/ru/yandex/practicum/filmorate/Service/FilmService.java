@@ -17,8 +17,8 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
-    public void addFilm(Film film) {
-        filmStorage.addFilm(film);
+    public Film addFilm(Film film) {
+        return filmStorage.addFilm(film);
     }
 
     public List<Film> getFilms() {
@@ -38,21 +38,20 @@ public class FilmService {
 
     public void addLike(Integer filmID, Integer userID) {
         if (userStorage.findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
-        filmStorage.findFilm(filmID).addLike(userID);
+        filmStorage.addLike(filmID, userID);
     }
 
     public void removeLike(Integer filmID, Integer userID) {
         if (userStorage.findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
-        if (!findFilm(filmID).getLikedIDs().contains(userID))
+        if (!filmStorage.getLikedIDs(filmID).contains(userID))
             throw new ObjectNotFoundException("Пользователю уже не нравится данный фильм.");
-        findFilm(filmID).removeLike(userID);
+        filmStorage.removeLike(filmID, userID);
     }
 
     public List<Film> getTopFilms(int count) {
         if (count <= 0) throw new ValidationException("Неверно указано количество фильмов.");
         if (count > getFilms().size()) count = getFilms().size();
-        List<Film> sortedFilms = filmStorage.getFilms();
-        sortedFilms.sort((Film o1, Film o2) -> o1.getLikedIDs().size() - o2.getLikedIDs().size());
-        return new ArrayList<>(sortedFilms.subList(sortedFilms.size()-count, sortedFilms.size()));
+        List<Film> topFilms = filmStorage.getTopFilms(count);
+        return topFilms;
     }
 }

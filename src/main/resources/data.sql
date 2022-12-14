@@ -1,15 +1,12 @@
-MERGE INTO RATINGS
-VALUES (1,'G'),
-       (2,'PG'),
-       (3,'PG-13'),
-       (4,'R'),
-       (5,'NC-17');
+MERGE INTO RATINGS VALUES (1,'G');
+MERGE INTO RATINGS VALUES (2,'PG');
+MERGE INTO RATINGS VALUES (3,'PG-13');
+MERGE INTO RATINGS VALUES (4,'R');
+MERGE INTO RATINGS VALUES (5,'NC-17');
 
-MERGE INTO GENRES
-VALUES
-    (1,'Комедия'),
-    (2,'Драма'),
-    (3,'Мультфильм'),
-    (4,'Триллер'),
-    (5,'Документальный'),
-    (6,'Боевик');
+MERGE INTO GENRES VALUES (1,'Комедия');
+MERGE INTO GENRES VALUES (2,'Драма');
+MERGE INTO GENRES VALUES (3,'Мультфильм');
+MERGE INTO GENRES VALUES (4,'Триллер');
+MERGE INTO GENRES VALUES (5,'Документальный');
+MERGE INTO GENRES VALUES (6,'Боевик');

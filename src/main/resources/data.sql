@@ -1,11 +1,11 @@
-INSERT INTO RATINGS
+MERGE INTO RATINGS
 VALUES (1,'G'),
        (2,'PG'),
        (3,'PG-13'),
        (4,'R'),
        (5,'NC-17');
 
-INSERT INTO GENRES
+MERGE INTO GENRES
 VALUES
     (1,'Комедия'),
     (2,'Драма'),

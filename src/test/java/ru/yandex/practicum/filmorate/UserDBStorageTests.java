@@ -20,66 +20,42 @@ public class UserDBStorageTests {
     private final UserDbStorage userStorage;
 
     @Test
-    public void shouldCreateUserTest() {
-        User user = new User("email@email.com", "login", "name", LocalDate.now());
-        User newUser = userStorage.addUser(user);
-        assertEquals(user.getName(), newUser.getName());
-        assertEquals(user.getEmail(), newUser.getEmail());
-        assertEquals(user.getLogin(), newUser.getLogin());
-    }
-
-    @Test
-    public void shouldUpdateUser() {
-        User user = new User("email@email.com", "login", "name", LocalDate.now());
-        User newUser = userStorage.addUser(user);
-        newUser.setName("name2");
-        userStorage.updateUser(newUser);
-        user = userStorage.findUser(newUser.getId());
-        assertEquals(1, newUser.getId());
-        assertEquals(user.getName(), newUser.getName());
-        assertEquals(user.getEmail(), newUser.getEmail());
-        assertEquals(user.getLogin(), newUser.getLogin());
-    }
-
-    @Test
-    public void shouldReturnUserByID() {
+    public void test() {
+        //creating
         User user = new User("email@email.com", "login", "name", LocalDate.now());
         User user2 = userStorage.addUser(user);
+        assertEquals(1, user2.getId());
+        assertEquals(user.getName(), user2.getName());
+        assertEquals(user.getEmail(), user2.getEmail());
+        assertEquals(user.getLogin(), user2.getLogin());
+
+        //finding
         User user3 = userStorage.findUser(user2.getId());
         assertEquals(user2.getId(), user3.getId());
         assertEquals(user2.getName(), user3.getName());
         assertEquals(user2.getEmail(), user3.getEmail());
         assertEquals(user2.getLogin(), user3.getLogin());
-    }
 
-    @Test
-    public void shouldReturnUserList() {
-        User user1 = new User("1email@email.com", "login1", "name1", LocalDate.now());
-        User user2 = userStorage.addUser(user1);
-        User user3 = new User("3email@email.com", "login3", "name3", LocalDate.now());
-        User user4 = userStorage.addUser(user3);
-        assertEquals(9, userStorage.getUsers().size());
-    }
+        //updating
+        user2.setName("name2");
+        userStorage.updateUser(user2);
+        User user4 = userStorage.findUser(user2.getId());
+        assertEquals(user4.getId(), user2.getId());
+        assertEquals("name2", user2.getName());
+        assertEquals(user4.getEmail(), user2.getEmail());
+        assertEquals(user4.getLogin(), user2.getLogin());
 
-    @Test
-    public void shouldMakeFriend() {
-        User user1 = new User("1email@email.com", "login1", "name1", LocalDate.now());
-        User user2 = userStorage.addUser(user1);
-        User user3 = new User("3email@email.com", "login3", "name3", LocalDate.now());
-        User user4 = userStorage.addUser(user3);
-        userStorage.addFriend(user2.getId(), user4.getId());
+        //getting all
+        assertEquals(1, userStorage.getUsers().size());
+
+        //adding friend
+        User user5 = new User("3email@email.com", "login3", "name3", LocalDate.now());
+        User user6 = userStorage.addUser(user3);
+        userStorage.addFriend(user2.getId(), user6.getId());
         assertEquals(1, userStorage.getFriends(user2.getId()).size());
-    }
 
-    @Test
-    public void shouldRemoveFriend() {
-        User user1 = new User("1email@email.com", "login1", "name1", LocalDate.now());
-        User user2 = userStorage.addUser(user1);
-        User user3 = new User("3email@email.com", "login3", "name3", LocalDate.now());
-        User user4 = userStorage.addUser(user3);
-        userStorage.addFriend(user2.getId(), user4.getId());
-        assertEquals(1, userStorage.getFriends(user2.getId()).size());
-        userStorage.removeFriend(user2.getId(), user4.getId());
+        //removing friend
+        userStorage.removeFriend(user2.getId(), user6.getId());
         assertEquals(0, userStorage.getFriends(user2.getId()).size());
     }
 }

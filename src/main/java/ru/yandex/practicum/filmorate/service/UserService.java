@@ -1,8 +1,9 @@
-package ru.yandex.practicum.filmorate.Service;
+package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.util.ObjectNotFoundException;
 
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserStorage userStorage;
+    private final FriendStorage friendStorage;
 
     public User addUser(User user) {
         return userStorage.addUser(user);
@@ -36,26 +38,26 @@ public class UserService {
     public void addFriend(Integer userID, Integer friendID) {
         User user = findUser(userID);
         User friend = findUser(friendID);
-        userStorage.addFriend(userID, friendID);
+        friendStorage.addFriend(userID, friendID);
     }
 
     public void removeFriend(Integer userID, Integer friendID) {
-        if (!userStorage.getFriends(userID).contains(friendID)) {
+        if (!friendStorage.getFriends(userID).contains(friendID)) {
             throw new ObjectNotFoundException("Данные пользователи не являются друзьями.");
         }
-        userStorage.removeFriend(userID, friendID);
+        friendStorage.removeFriend(userID, friendID);
     }
 
     public List<User> getFriends(Integer userID) {
         if (findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
-        return userStorage.getFriends(userID).stream()
+        return friendStorage.getFriends(userID).stream()
                 .map(this::findUser)
                 .collect(Collectors.toList());
     }
 
     public List<User> getMutualFriends(Integer userID, Integer friendID) {
-        return userStorage.getFriends(userID).stream()
-                .filter(userStorage.getFriends(friendID)::contains)
+        return friendStorage.getFriends(userID).stream()
+                .filter(friendStorage.getFriends(friendID)::contains)
                 .map(this::findUser)
                 .collect(Collectors.toList());
     }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.yandex.practicum.filmorate.dao.FriendDbStorage;
 import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UserDBStorageTests {
 
     private final UserDbStorage userStorage;
+    private final FriendDbStorage friendStorage;
 
     @Test
     public void shouldCreateUser() {
@@ -67,8 +69,8 @@ public class UserDBStorageTests {
         User user2 = userStorage.addUser(user);
         User user5 = new User("3email@email.com", "login3", "name3", LocalDate.now());
         User user6 = userStorage.addUser(user5);
-        userStorage.addFriend(user2.getId(), user6.getId());
-        assertEquals(1, userStorage.getFriends(user2.getId()).size());
+        friendStorage.addFriend(user2.getId(), user6.getId());
+        assertEquals(1, friendStorage.getFriends(user2.getId()).size());
     }
 
     @Test
@@ -77,7 +79,7 @@ public class UserDBStorageTests {
         User user2 = userStorage.addUser(user);
         User user5 = new User("3email@email.com", "login3", "name3", LocalDate.now());
         User user6 = userStorage.addUser(user5);
-        userStorage.removeFriend(user2.getId(), user6.getId());
-        assertEquals(0, userStorage.getFriends(user2.getId()).size());
+        friendStorage.removeFriend(user2.getId(), user6.getId());
+        assertEquals(0, friendStorage.getFriends(user2.getId()).size());
     }
 }

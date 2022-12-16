@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.sun.istack.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -16,10 +17,21 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private int duration;
+    @NotNull
     private Rating mpa;
     private List<Genre> genres;
 
     public Film(String name, String description, LocalDate releaseDate, int duration, Rating mpa) {
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+        genres = new ArrayList<>();
+    }
+
+    public Film(int id, String name, String description, LocalDate releaseDate, int duration, Rating mpa) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;

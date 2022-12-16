@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -10,19 +10,14 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Repository
+@RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public UserDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public User addUser(User user) {
@@ -74,31 +69,6 @@ public class UserDbStorage implements UserStorage {
         final List<User> users = jdbcTemplate.query(sqlQuery, UserDbStorage::makeUser, userID);
         if (users.size()!=1) return null;
         return users.get(0);
-    }
-
-    @Override
-    public void addFriend(Integer userID, Integer friendID) {
-        String sqlQuery1 = "DELETE FROM FRIENDSHIPS " +
-                "WHERE FRIEND_1_ID = ? AND FRIEND_2_ID = ?";
-        String sqlQuery2 = "INSERT INTO FRIENDSHIPS(FRIEND_1_ID, FRIEND_2_ID) " +
-                "VALUES (?, ?)";
-        jdbcTemplate.update(sqlQuery1, userID, friendID);
-        jdbcTemplate.update(sqlQuery2, userID, friendID);
-    }
-
-    @Override
-    public List<Integer> getFriends(Integer userID) {
-        String sqlQuery = "SELECT FRIEND_2_ID " +
-                "FROM FRIENDSHIPS " +
-                "WHERE FRIEND_1_ID = ?";
-        return new ArrayList<>(jdbcTemplate.query(sqlQuery, UserDbStorage::makeID, userID));
-    }
-
-    @Override
-    public void removeFriend(Integer userID, Integer friendID) {
-        String sqlQuery = "DELETE FROM FRIENDSHIPS " +
-                "WHERE FRIEND_1_ID = ? AND FRIEND_2_ID = ?";
-        jdbcTemplate.update(sqlQuery, userID, friendID);
     }
 
     static User makeUser(ResultSet rs, int rowNum) throws SQLException {

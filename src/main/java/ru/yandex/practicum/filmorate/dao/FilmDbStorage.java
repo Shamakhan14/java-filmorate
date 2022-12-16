@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -16,14 +17,10 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Repository
+@RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public Film addFilm(Film film) {
@@ -46,22 +43,17 @@ public class FilmDbStorage implements FilmStorage {
             return stmt;
         }, keyHolder);
         film.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
-        final String genreSqlQuery = "INSERT INTO FILM_GENRE(FILM_ID, GENRE_ID) VALUES (?, ?)";
         if (film.getGenres()!=null && film.getGenres().size()!=0) {
-            Set<Genre> genres = new HashSet<>(film.getGenres());
-            for (Genre genre: genres) {
-                jdbcTemplate.update(genreSqlQuery, film.getId(), genre.getId());
-            }
+            batchUpdateGenres(film);
         }
-        film.setMpa(getFilmRating(film.getId()));
-        film.setGenres(getFilmGenres(film.getId()));
         return film;
     }
 
     @Override
     public List<Film> getFilms() {
-        String sqlQuery = "SELECT FILM_ID, FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA " +
-                "FROM FILMS";
+        String sqlQuery = "SELECT FILM_ID, FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA, RATINGS.RATING_NAME " +
+                "FROM FILMS " +
+                "LEFT JOIN RATINGS ON FILMS.MPA = RATINGS.RATING_ID";
         final List<Film> films = jdbcTemplate.query(sqlQuery, this::makeFilm);
         return films;
     }
@@ -78,22 +70,17 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDuration(),
                 film.getMpa().getId(),
                 film.getId());
-        String deleteGenresQuery = "DELETE FROM FILM_GENRE " +
-            "WHERE FILM_ID = ?";
-        jdbcTemplate.update(deleteGenresQuery, film.getId());
-        final String genreSqlQuery = "INSERT INTO FILM_GENRE(FILM_ID, GENRE_ID) VALUES (?, ?)";
+        deleteGenres(film.getId());
         if (film.getGenres()!=null && film.getGenres().size()!=0) {
-            Set<Genre> genres = new HashSet<>(film.getGenres());
-            for (Genre genre: genres) {
-                jdbcTemplate.update(genreSqlQuery, film.getId(), genre.getId());
-            }
+            batchUpdateGenres(film);
         }
     }
 
     @Override
     public Film findFilm(Integer filmID) {
-        final String sqlQuery = "SELECT FILM_ID, FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION " +
+        final String sqlQuery = "SELECT FILM_ID, FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA, RATINGS.RATING_NAME " +
                 "FROM FILMS " +
+                "LEFT JOIN RATINGS ON FILMS.MPA = RATINGS.RATING_ID " +
                 "WHERE FILM_ID = ?";
         final List<Film> films = jdbcTemplate.query(sqlQuery, this::makeFilm, filmID);
         if (films.size()!=1) return null;
@@ -125,9 +112,10 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getTopFilms(Integer limit) {
-        String sqlQuery = "SELECT FILMS.FILM_ID, FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA " +
+        String sqlQuery = "SELECT FILMS.FILM_ID, FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA, RATINGS.RATING_NAME " +
                 "FROM FILMS " +
                 "LEFT JOIN FILM_LIKES FL ON FILMS.FILM_ID = FL.FILM_ID " +
+                "LEFT JOIN RATINGS ON FILMS.MPA = RATINGS.RATING_ID " +
                 "GROUP BY FILMS.FILM_ID " +
                 "ORDER BY COUNT(USER_ID) DESC " +
                 "LIMIT ?";
@@ -141,9 +129,9 @@ public class FilmDbStorage implements FilmStorage {
         String filmDescription = rs.getString("DESCRIPTION");
         LocalDate filmDate = rs.getDate("RELEASE_DATE").toLocalDate();
         Integer filmDuration = rs.getInt("DURATION");
-        Rating filmRating = getFilmRating(filmID);
-        List<Genre> genres = getFilmGenres(filmID);
-        return new Film(filmID, filmName, filmDescription, filmDate, filmDuration, filmRating, genres);
+        Rating filmRating = new Rating(rs.getInt("MPA"), rs.getString("RATING_NAME"));
+        //List<Genre> genres = getFilmGenres(filmID);
+        return new Film(filmID, filmName, filmDescription, filmDate, filmDuration, filmRating/*, genres*/);
     }
 
     private List<Genre> getFilmGenres(Integer filmID) {
@@ -154,17 +142,31 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sqlQuery, GenreDbStorage::makeGenre, filmID);
     }
 
-    private Rating getFilmRating(Integer filmID) {
-        final String sqlQuery = "SELECT RATING_ID, RATING_NAME " +
-                "FROM RATINGS " +
-                "JOIN FILMS ON RATING_ID = FILMS.MPA " +
-                "WHERE FILMS.FILM_ID = ?";
-        final List<Rating> ratings = jdbcTemplate.query(sqlQuery, RatingDbStorage::makeRating, filmID);
-        if (ratings.size()!=1) return null;
-        return ratings.get(0);
-    }
-
     private Integer getUserIDs(ResultSet rs, int rowNum) throws SQLException {
         return rs.getInt("USER_ID");
+    }
+
+    private void deleteGenres(Integer id) {
+        String deleteGenresQuery = "DELETE FROM FILM_GENRE " +
+                "WHERE FILM_ID = ?";
+        jdbcTemplate.update(deleteGenresQuery, id);
+    }
+
+    private int[] batchUpdateGenres(Film film) {
+        Set<Genre> genres = new HashSet<>(film.getGenres());
+        List<Genre> genreList = new ArrayList<>(genres);
+        return this.jdbcTemplate.batchUpdate(
+                "INSERT INTO FILM_GENRE(FILM_ID, GENRE_ID) VALUES (?, ?)",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setInt(1, film.getId());
+                        ps.setInt(2, genreList.get(i).getId());
+                    }
+                    @Override
+                    public int getBatchSize() {
+                        return genreList.size();
+                    }
+                });
     }
 }

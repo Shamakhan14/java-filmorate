@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS Friendships
     Friend_2_ID INT NOT NULL,
     Status CHAR(1),
     FOREIGN KEY (Friend_1_ID) REFERENCES Users(User_ID),
-    FOREIGN KEY (Friend_2_ID) REFERENCES Users(User_ID)
+    FOREIGN KEY (Friend_2_ID) REFERENCES Users(User_ID),
+    UNIQUE (Friend_1_ID, Friend_2_ID)
 );
 
 CREATE TABLE IF NOT EXISTS Ratings
@@ -40,7 +41,8 @@ CREATE TABLE IF NOT EXISTS Film_likes
     Film_ID INT NOT NULL,
     User_ID INT NOT NULL,
     FOREIGN KEY (Film_ID) REFERENCES Films(Film_ID),
-    FOREIGN KEY (User_ID) REFERENCES Users(User_ID)
+    FOREIGN KEY (User_ID) REFERENCES Users(User_ID),
+    UNIQUE (Film_ID, User_ID)
 );
 
 CREATE TABLE IF NOT EXISTS Genres

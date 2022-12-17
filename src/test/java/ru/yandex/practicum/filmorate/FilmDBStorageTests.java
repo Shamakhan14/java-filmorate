@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.dao.FilmDbStorage;
+import ru.yandex.practicum.filmorate.dao.LikeDbStorage;
 import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Rating;
@@ -26,6 +27,7 @@ public class FilmDBStorageTests {
 
     private final FilmDbStorage filmDbStorage;
     private final UserDbStorage userStorage;
+    private final LikeDbStorage likeDbStorage;
 
     @Test
     public void shouldCreateFilm() {
@@ -83,8 +85,8 @@ public class FilmDBStorageTests {
         Film film1 = new Film("1name", "1description", LocalDate.now(), 100,
                 new Rating(1, "G"));
         Film film2 = filmDbStorage.addFilm(film1);
-        filmDbStorage.addLike(film2.getId(), user2.getId());
-        assertEquals(1, filmDbStorage.getLikedIDs(film2.getId()).size());
+        likeDbStorage.addLike(film2.getId(), user2.getId());
+        assertEquals(1, likeDbStorage.getLikedIDs(film2.getId()).size());
     }
 
     @Test
@@ -94,10 +96,10 @@ public class FilmDBStorageTests {
         Film film1 = new Film("1name", "1description", LocalDate.now(), 100,
                 new Rating(1, "G"));
         Film film2 = filmDbStorage.addFilm(film1);
-        filmDbStorage.addLike(film2.getId(), user2.getId());
-        assertEquals(1, filmDbStorage.getLikedIDs(film2.getId()).size());
-        filmDbStorage.removeLike(film2.getId(), user2.getId());
-        assertEquals(0, filmDbStorage.getLikedIDs(film2.getId()).size());
+        likeDbStorage.addLike(film2.getId(), user2.getId());
+        assertEquals(1, likeDbStorage.getLikedIDs(film2.getId()).size());
+        likeDbStorage.removeLike(film2.getId(), user2.getId());
+        assertEquals(0, likeDbStorage.getLikedIDs(film2.getId()).size());
     }
 
     @Test
@@ -107,8 +109,8 @@ public class FilmDBStorageTests {
         Film film1 = new Film("1name", "1description", LocalDate.now(), 100,
                 new Rating(1, "G"));
         Film film2 = filmDbStorage.addFilm(film1);
-        filmDbStorage.addLike(film2.getId(), user2.getId());
-        assertEquals(1, filmDbStorage.getLikedIDs(film2.getId()).size());
+        likeDbStorage.addLike(film2.getId(), user2.getId());
+        assertEquals(1, likeDbStorage.getLikedIDs(film2.getId()).size());
         assertEquals(1, filmDbStorage.getTopFilms(1).size());
     }
 }

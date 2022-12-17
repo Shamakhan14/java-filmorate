@@ -57,5 +57,6 @@ CREATE TABLE IF NOT EXISTS Film_genre
     Film_ID INT,
     Genre_ID INT,
     FOREIGN KEY (Film_ID) REFERENCES Films(Film_ID),
-    FOREIGN KEY (Genre_ID) REFERENCES Genres(Genre_ID)
+    FOREIGN KEY (Genre_ID) REFERENCES Genres(Genre_ID),
+    UNIQUE (Film_ID, Genre_ID)
 );

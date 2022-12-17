@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.util.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.util.ValidationException;
@@ -18,6 +19,7 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final GenreStorage genreStorage;
+    private final LikeStorage likeStorage;
 
     public Film addFilm(Film film) {
         return filmStorage.addFilm(film);
@@ -40,14 +42,14 @@ public class FilmService {
 
     public void addLike(Integer filmID, Integer userID) {
         if (userStorage.findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
-        filmStorage.addLike(filmID, userID);
+        likeStorage.addLike(filmID, userID);
     }
 
     public void removeLike(Integer filmID, Integer userID) {
         if (userStorage.findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
-        if (!filmStorage.getLikedIDs(filmID).contains(userID))
+        if (!likeStorage.getLikedIDs(filmID).contains(userID))
             throw new ObjectNotFoundException("Пользователю уже не нравится данный фильм.");
-        filmStorage.removeLike(filmID, userID);
+        likeStorage.removeLike(filmID, userID);
     }
 
     public List<Film> getTopFilms(int count) {

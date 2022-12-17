@@ -42,7 +42,7 @@ public class UserService {
     }
 
     public void removeFriend(Integer userID, Integer friendID) {
-        if (!friendStorage.getFriends(userID).contains(friendID)) {
+        if (!friendStorage.getFriends(userID).contains(findUser(friendID))) {
             throw new ObjectNotFoundException("Данные пользователи не являются друзьями.");
         }
         friendStorage.removeFriend(userID, friendID);
@@ -50,15 +50,10 @@ public class UserService {
 
     public List<User> getFriends(Integer userID) {
         if (findUser(userID) == null) throw new ObjectNotFoundException("Неверный ID пользователя.");
-        return friendStorage.getFriends(userID).stream()
-                .map(this::findUser)
-                .collect(Collectors.toList());
+        return friendStorage.getFriends(userID);
     }
 
     public List<User> getMutualFriends(Integer userID, Integer friendID) {
-        return friendStorage.getFriends(userID).stream()
-                .filter(friendStorage.getFriends(friendID)::contains)
-                .map(this::findUser)
-                .collect(Collectors.toList());
+        return friendStorage.getMutualFriends(userID, friendID);
     }
 }

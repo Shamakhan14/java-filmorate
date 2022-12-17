@@ -5,12 +5,12 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 public class Film {
     private int id;
     private String name;
@@ -19,7 +19,7 @@ public class Film {
     private int duration;
     @NotNull
     private Rating mpa;
-    private List<Genre> genres;
+    private LinkedHashSet<Genre> genres;
 
     public Film(String name, String description, LocalDate releaseDate, int duration, Rating mpa) {
         this.name = name;
@@ -27,7 +27,7 @@ public class Film {
         this.releaseDate = releaseDate;
         this.duration = duration;
         this.mpa = mpa;
-        genres = new ArrayList<>();
+        genres = new LinkedHashSet<>();
     }
 
     public Film(int id, String name, String description, LocalDate releaseDate, int duration, Rating mpa) {
@@ -37,15 +37,6 @@ public class Film {
         this.releaseDate = releaseDate;
         this.duration = duration;
         this.mpa = mpa;
-        genres = new ArrayList<>();
-    }
-
-    public Film(String name, String description, LocalDate releaseDate, int duration, Rating mpa, List<Genre> genres) {
-        this.name = name;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-        this.mpa = mpa;
-        this.genres = genres;
+        genres = new LinkedHashSet<>();
     }
 }

@@ -1,12 +1,10 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.sun.istack.NotNull;
 import lombok.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor

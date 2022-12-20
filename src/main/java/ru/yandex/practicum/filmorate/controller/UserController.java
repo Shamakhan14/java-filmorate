@@ -1,9 +1,9 @@
-package ru.yandex.practicum.filmorate.controllers;
+package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.Service.UserService;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.util.ValidationException;
 
@@ -19,11 +19,14 @@ public class UserController {
 
     @PostMapping("/users")
     public User create(@RequestBody User user) {
+        User newUser;
         if (isValid(user)) {
-            userService.addUser(user);
+            newUser = userService.addUser(user);
             log.info("Пользователь " + user.getName() + " успешно добавлен.");
+        } else {
+            newUser = null;
         }
-        return user;
+        return newUser;
     }
 
     @GetMapping("/users")

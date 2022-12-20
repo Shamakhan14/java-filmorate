@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.controllers;
+package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.util.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.util.ValidationException;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -33,6 +34,14 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleOtherExceptions(final Throwable exception) {
+        log.error(exception.getClass().toString() + ": " + exception.getMessage());
+        return Map.of("error", exception.getClass().toString(),
+                "error message", exception.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleUniqueException(final SQLIntegrityConstraintViolationException exception) {
         log.error(exception.getClass().toString() + ": " + exception.getMessage());
         return Map.of("error", exception.getClass().toString(),
                 "error message", exception.getMessage());

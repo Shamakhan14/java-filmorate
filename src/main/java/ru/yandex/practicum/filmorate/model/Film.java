@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Data;
+import lombok.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class Film {
     private int id;
@@ -12,21 +15,26 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private int duration;
-    private HashSet<Integer> likedIDs;
+    @NotNull
+    private Rating mpa;
+    private LinkedHashSet<Genre> genres;
 
-    public Film(String name, String description, LocalDate releaseDate, int duration) {
+    public Film(String name, String description, LocalDate releaseDate, int duration, Rating mpa) {
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
-        this.likedIDs = new HashSet<>();
+        this.mpa = mpa;
+        genres = new LinkedHashSet<>();
     }
 
-    public void addLike(Integer userID) {
-        likedIDs.add(userID);
-    }
-
-    public void removeLike(Integer userID) {
-        likedIDs.remove(userID);
+    public Film(int id, String name, String description, LocalDate releaseDate, int duration, Rating mpa) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+        genres = new LinkedHashSet<>();
     }
 }

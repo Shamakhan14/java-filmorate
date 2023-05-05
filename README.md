@@ -1,2 +1,9 @@
-# java-filmorate
-![Схема БД.](https://github.com/Shamakhan14/java-filmorate/blob/add-database/QuickDBD-Filmorate.png)
+# Filmorate
+
+Учебный проект бэкэнд приложения для сайта, наподобие Кинопоиска. Имеется возможность зарегистрировать пользователя, добавить фильм или жанр фильма в БД, осуществлять поиск по фильмам, жанрам, оставлять комментарии.
+
+P.S. В данном репозитории только часть готовой работы. Данный проект был групповым, поэтому остальные наработки лежат [здесь](https://github.com/Polina-Obruch/java-filmorate).
+
+Схема БД проекта:
+
+![Схема БД](https://github.com/Shamakhan14/java-filmorate/blob/add-database/QuickDBD-Filmorate.png)
